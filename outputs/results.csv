@@ -1,0 +1,3 @@
+method,AUC,hit rate,false alarms
+Forecasters (danger level),0.74,0.71,0.44
+Our model (dry + wet),0.73,0.7,0.5

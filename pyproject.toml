@@ -1,0 +1,14 @@
+[project]
+name = "avalanche-agent"
+version = "0.1.0"
+description = "Avalanche day predictor + LLM agent for Davos"
+requires-python = ">=3.14"
+dependencies = [
+    "anthropic>=2.12.0",
+    "joblib>=1.6.0",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.5",
+    "pandas>=3.1.1",
+    "requests>=2.34.2",
+    "scikit-learn>=1.9.1",
+]
