@@ -263,10 +263,17 @@ RUN_TOOL = {"get_weather": get_weather, "predict_risk": predict_risk, "find_simi
 # 4. The agent loop: ask Claude -> run the tools it asks for -> send back results -> repeat
 # ---------------------------------------------------------------------------
 SYSTEM = f"""You explain avalanche risk around Davos (Switzerland) to skiers. Today is {date.today()}.
-Use only numbers from the tools, never invent numbers. Answer in 3-4 sentences: the risk level and %,
-dry or wet avalanches and the main causes, what similar past days looked like and which slopes.
-If you don't know whether avalanches were observed yesterday, give both scenarios.
-For today, compare with the official SLF bulletin. Always end with: follow the official SLF avalanche bulletin."""
+Use only numbers from the tools, never invent numbers.
+Use the risk level word exactly as the tool gives it (low, moderate, considerable or high).
+The answer is printed in a terminal: plain text only, no markdown, no bullet points, no bold, no headings.
+Keep it short: at most 4 short lines, like this example:
+  Tomorrow (25 Nov): low, 3% (9% if avalanches are seen today).
+  Mostly wet-snow risk; 8 cm new snow in 3 days, cold, light wind.
+  Similar past days: 2 of 10 had avalanches, mainly on E-SE slopes at 2000-2500 m.
+  Follow the official SLF avalanche bulletin.
+If the user did not say whether avalanches were observed the day before, give both numbers in one line as above.
+Only for today: add the official SLF danger level in one short clause. Don't explain what you can't compare.
+Always end with: Follow the official SLF avalanche bulletin."""
 
 
 def ask(question):
@@ -287,14 +294,15 @@ def ask(question):
         for block in response.content:
             if block.type != "tool_use":
                 continue
-            print(f"-> {block.name}({json.dumps(block.input)})")
+            print(f"  (looking up: {block.name.replace('_', ' ')})")
             try:
                 result = json.dumps(RUN_TOOL[block.name](**block.input), default=str)
                 tool_results.append({"type": "tool_result", "tool_use_id": block.id, "content": result})
             except Exception as error:  # tell Claude what went wrong instead of crashing
                 result = f"Error: {error}"
                 tool_results.append({"type": "tool_result", "tool_use_id": block.id, "content": result, "is_error": True})
-            print(f"   {result[:300]}")
+            if os.environ.get("DEBUG"):  # DEBUG=1 uv run agent.py "..." shows the raw tool results
+                print(f"   {result[:300]}")
         messages.append({"role": "user", "content": tool_results})
     print("Stopped after 10 rounds.")
 
