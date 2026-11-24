@@ -1,8 +1,8 @@
 # Avalanche day predictor: Davos
 
-**Question:** how likely are natural avalanches around Davos on a given day of the main season (December-April), and how does a simple model compare with the official SLF avalanche forecasters?
+**Question:** how likely are natural avalanches around Davos on a given day of the snow season (November-May), and how does a simple model compare with the official SLF avalanche forecasters?
 
-**Answer:** a logistic regression on daily weather (plus whether avalanches happened yesterday) beats the official danger level in **96% of 200 random train/test splits** (average AUC **0.72 vs 0.68**).
+**Answer:** a logistic regression on daily weather (plus whether avalanches happened yesterday) beats the official danger level in **98% of 200 random train/test splits** (average AUC **0.74 vs 0.69**).
 
 ## How to run
 
@@ -21,7 +21,7 @@ The weather is downloaded automatically the first time (Open-Meteo, free, no API
 | [SLF: Snow avalanche data Davos](https://www.envidat.ch/dataset/snow-avalanche-data-davos) (doi:10.16904/envidat.134) | One row per winter day: number of avalanches by size, type and trigger, and the official danger level (1-5). Download `avalanche_activity_data.csv` into `data/`. | 1999-2019, 3,533 days |
 | [Open-Meteo archive](https://open-meteo.com/en/docs/historical-weather-api) | Daily weather at 2,500 m: snowfall, snow depth, temperature, wind gusts, sun | same days |
 
-**Target:** an *avalanche day* = at least one **natural** avalanche of **size 2+** (big enough to bury a person). Main season December-April only (3,122 days, 27% avalanche days); November and May have too few avalanches.
+**Target:** an *avalanche day* = at least one **natural** avalanche of **size 2+** (big enough to bury a person). Snow season November-May (3,530 days, 25% avalanche days). November and May have few avalanches, so each month gets its own baseline.
 
 ## Method
 
@@ -46,18 +46,18 @@ One random split (test winters 1999, 2004, 2005, 2008, 2009, 2012):
 
 | | AUC | Hit rate | False alarms |
 |---|---|---|---|
-| Forecasters (danger level) | 0.65 | 63% | 65% |
-| **Our model** | **0.71** | **67%** | **61%** |
+| Forecasters (danger level) | 0.66 | 63% | 66% |
+| **Our model** | **0.72** | **66%** | **63%** |
 
-Example, avalanche winter 1999 (a test winter): on 23 Feb 1999 (official danger level 5) the model gives **97% -> high**.
+Example, avalanche winter 1999 (a test winter): on 23 Feb 1999 (official danger level 5) the model gives **95% -> high**.
 
-Repeated over 200 random splits: model **0.721**, forecasters **0.683**, model better in **96%** of splits.
+Repeated over 200 random splits: model **0.737**, forecasters **0.687**, model better in **98%** of splits.
 
 *AUC: how often an avalanche day gets a higher score than a quiet day (0.5 = coin flip, 1 = perfect). Hit rate: share of avalanche days with a warning. False alarms: share of warnings with no avalanche.*
 
 ![ROC curves](outputs/roc_comparison.png)
 
-**What drives the model:** dry avalanches follow new snow (last 3-7 days), helped by wind and weak layers; wet avalanches follow temperature. Every weight points in the physically expected direction. Avalanches yesterday raise the risk in both.
+**What drives the model:** dry avalanches follow new snow (last 3-7 days), helped by wind and weak layers; wet avalanches follow temperature. Every weight points in the physically expected direction except *snow on a weak layer*, which is about zero (-0.03): its effect is already carried by the temperature gradient and 7-day snow. Avalanches yesterday raise the risk in both.
 
 ![Feature importance](outputs/feature_importance.png)
 
