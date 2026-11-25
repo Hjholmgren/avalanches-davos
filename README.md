@@ -38,7 +38,7 @@ The weather is downloaded automatically the first time (Open-Meteo, free, no API
 
 2. **Two logistic regressions:** dry avalanches (driven by snow) and wet avalanches (driven by warmth), combined as P = 1 - (1 - P_dry)(1 - P_wet).
 3. **Split by whole winters, at random:** train on 15 winters, test on 6. Whole winters, because neighbouring days are almost identical.
-   **Regularisation:** C = 0.03 (smaller weights, less extreme probabilities), chosen by leaving out one training winter at a time; the test winters are never used for it.
+   **Regularisation:** C = 0.1 (smaller weights, less extreme probabilities; the default is 1).
 4. **Benchmark:** the official SLF danger level, scored on the same test days.
 
 ## Results
@@ -48,9 +48,9 @@ One random split (test winters 1999, 2004, 2005, 2008, 2009, 2012):
 | | AUC | Hit rate | False alarms |
 |---|---|---|---|
 | Forecasters (danger level) | 0.66 | 63% | 66% |
-| **Our model** | **0.72** | **66%** | **62%** |
+| **Our model** | **0.72** | **66%** | **63%** |
 
-Example, avalanche winter 1999 (a test winter): on 23 Feb 1999 (official danger level 5) the model gives **94% -> high**.
+Example, avalanche winter 1999 (a test winter): on 23 Feb 1999 (official danger level 5) the model gives **95% -> high**.
 
 Repeated over 200 random splits: model **0.738**, forecasters **0.687**, model better in **all 200** splits.
 
