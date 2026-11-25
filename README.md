@@ -2,7 +2,7 @@
 
 **Question:** how likely are natural avalanches around Davos on a given day of the snow season (November-May), and how does a simple model compare with the official SLF avalanche forecasters?
 
-**Answer:** a logistic regression on daily weather (plus whether avalanches happened yesterday) beats the official danger level in **98% of 200 random train/test splits** (average AUC **0.74 vs 0.69**).
+**Answer:** a logistic regression on daily weather (plus whether avalanches happened yesterday) beats the official danger level in **all 200 random train/test splits** (average AUC **0.74 vs 0.69**).
 
 ## How to run
 
@@ -38,6 +38,7 @@ The weather is downloaded automatically the first time (Open-Meteo, free, no API
 
 2. **Two logistic regressions:** dry avalanches (driven by snow) and wet avalanches (driven by warmth), combined as P = 1 - (1 - P_dry)(1 - P_wet).
 3. **Split by whole winters, at random:** train on 15 winters, test on 6. Whole winters, because neighbouring days are almost identical.
+   **Regularisation:** C = 0.03 (smaller weights, less extreme probabilities), chosen by leaving out one training winter at a time; the test winters are never used for it.
 4. **Benchmark:** the official SLF danger level, scored on the same test days.
 
 ## Results
@@ -47,17 +48,17 @@ One random split (test winters 1999, 2004, 2005, 2008, 2009, 2012):
 | | AUC | Hit rate | False alarms |
 |---|---|---|---|
 | Forecasters (danger level) | 0.66 | 63% | 66% |
-| **Our model** | **0.72** | **66%** | **63%** |
+| **Our model** | **0.72** | **66%** | **62%** |
 
-Example, avalanche winter 1999 (a test winter): on 23 Feb 1999 (official danger level 5) the model gives **95% -> high**.
+Example, avalanche winter 1999 (a test winter): on 23 Feb 1999 (official danger level 5) the model gives **94% -> high**.
 
-Repeated over 200 random splits: model **0.737**, forecasters **0.687**, model better in **98%** of splits.
+Repeated over 200 random splits: model **0.738**, forecasters **0.687**, model better in **all 200** splits.
 
 *AUC: how often an avalanche day gets a higher score than a quiet day (0.5 = coin flip, 1 = perfect). Hit rate: share of avalanche days with a warning. False alarms: share of warnings with no avalanche.*
 
 ![ROC curves](outputs/roc_comparison.png)
 
-**What drives the model:** dry avalanches follow new snow (last 3-7 days), helped by wind and weak layers; wet avalanches follow temperature. Every weight points in the physically expected direction except *snow on a weak layer*, which is about zero (-0.03): its effect is already carried by the temperature gradient and 7-day snow. Avalanches yesterday raise the risk in both.
+**What drives the model:** dry avalanches follow new snow (last 3-7 days), helped by wind and weak layers; wet avalanches follow temperature. Every weight points in the physically expected direction. Several features overlap (e.g. wind x new snow and new snow), so single weights should be read as rough, not exact. Avalanches yesterday raise the risk in both.
 
 ![Feature importance](outputs/feature_importance.png)
 
